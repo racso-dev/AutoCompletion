@@ -45,23 +45,30 @@ jobs:
   repo-sync:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
-      with:
-        fetch-depth: '0'
-        ref: 'master'
     - name: Install SSH key
       uses: shimataro/ssh-key-action@v2
       with:
          key: ${{ secrets.SSH_PRIVATE_KEY }}
          known_hosts: |
            git.epitech.eu ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFaM0VzHyyfdlVU43JdzwPKPwPyQ4SigxblHQpFP9GXP
-    - name: Pushing to Epitech servers
+    - name: Cloning Epitech repo
       run: |
         chmod 600 ~/.ssh/id_rsa
         echo "" >> ~/.ssh/id_rsa
         echo "" >> ~/.ssh/known_hosts
-        git remote add epitech git@git.epitech.eu:/oscar.renier@epitech.eu/SYN_autoCompletion_2019
-        git pull epitech
-        git config --global user.email "oscar.renier@gmail.com"
+        git config --global user.email "oscar.renier@epitech.eu"
         git config --global user.name "roscar"
-        git push -u epitech master
+        git clone git@git.epitech.eu:/oscar.renier@epitech.eu/SYN_autoCompletion_2019 /tmp/deploy
+    - name: Cloning GitHub repo
+      run: git clone git@git.epitech.eu:/oscar.renier@epitech.eu/SYN_autoCompletion_2019 /tmp/docs
+    - name: Updating content of Epitech repo
+      run: |
+        cp -rf * /tmp/deploy
+        rm -rf /tmp/deploy/docs
+        mkdir -p /tmp/deploy/docs && cp -rf /tmp/docs/* /tmp/deploy/docs
+    - name: Pushing to Epitech servers
+      run: |
+        cd /tmp/deploy
+        git add -A
+        git commit -m "Merging Master from GitHub via GitHub Actions"
+        git push
