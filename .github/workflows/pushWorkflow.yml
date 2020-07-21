@@ -45,6 +45,10 @@ jobs:
   repo-sync:
     runs-on: ubuntu-latest
     steps:
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: '0'
+        ref: 'master'
     - name: Install SSH key
       uses: shimataro/ssh-key-action@v2
       with:
@@ -58,17 +62,5 @@ jobs:
         echo "" >> ~/.ssh/known_hosts
         git config --global user.email "oscar.renier@epitech.eu"
         git config --global user.name "roscar"
-        git clone git@git.epitech.eu:/oscar.renier@epitech.eu/SYN_autoCompletion_2019 /tmp/deploy
-    - name: Cloning GitHub repo
-      run: git clone git@github.com:racso-dev/AutoCompletion.git /tmp/docs
-    - name: Updating content of Epitech repo
-      run: |
-        cp -rf /tmp/docs/. /tmp/deploy
-        rm -rf /tmp/docs
-    - name: Pushing to Epitech servers
-      run: |
-        cd /tmp/deploy
-        git add -A
-        git commit -m "Merging Master from GitHub via GitHub Actions"
-        git push
-        cd . && rm -rf /tmp/deploy
+        git remote add epitech git@git.epitech.eu:/oscar.renier@epitech.eu/SYN_autoCompletion_2019
+        git push -u epitech master
