@@ -45,6 +45,12 @@ jobs:
   repo-sync:
     runs-on: ubuntu-latest
     steps:
+    - name: Install SSH key
+      uses: shimataro/ssh-key-action@v2
+      with:
+         key: ${{ secrets.SSH_PRIVATE_KEY }}
+         known_hosts: |
+           git.epitech.eu ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFaM0VzHyyfdlVU43JdzwPKPwPyQ4SigxblHQpFP9GXP
     - name: Cloning Epitech repo
       run: |
         chmod 600 ~/.ssh/id_rsa
