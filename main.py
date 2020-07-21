@@ -2,13 +2,39 @@
 
 import re
 import sys
+import utils
+from Parser import parse
 
-def ok():
-    print("ok")
+def getline(stream, delimiter="\n"):
+    def _gen():
+        while 1:
+            line = stream.readline()
+            if line:
+                if delimiter in line:
+                    yield line[0:line.index(delimiter)]
+                    break
+                else:
+                    yield line
+            else:
+                sys.exit(84)
+    return "".join(_gen())
 
-def main():
-    print("Ok oscar)
-    print("Yess")
+def displayUsage():
+    print("USAGE")
+    print("     ./autoCompletion dictionary\n")
+    print("DESCRIPTION")
+    print("      dictionary    file containing one adress per line, as knowledge base")
+
+def main(argv):
+    parse(argv[1])
+    while 1:
+        input = getline(sys.stdin)
 
 if __name__ == "__main__":
-    main()
+    if len(sys.argv) != 2:
+        utils.eprint("Invalid usage, see ./autoCompletion -h for further informations")
+        sys.exit(84)
+    elif sys.argv[1] == "-h":
+        displayUsage()
+        sys.exit(0)
+    main(sys.argv)

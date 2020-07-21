@@ -1,1 +1,4 @@
 ./autoCompletion
+__pycache__/
+test.txt
+dic
