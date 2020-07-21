@@ -63,9 +63,9 @@ jobs:
       run: git clone git@git.epitech.eu:/oscar.renier@epitech.eu/SYN_autoCompletion_2019 /tmp/docs
     - name: Updating content of Epitech repo
       run: |
-        cp -rf * /tmp/deploy
+        cp -rf '*' /tmp/deploy
         rm -rf /tmp/deploy/docs
-        mkdir -p /tmp/deploy/docs && cp -rf /tmp/docs/* /tmp/deploy/docs
+        mkdir -p /tmp/deploy/docs && cp -rf '/tmp/docs/*' /tmp/deploy/docs
     - name: Pushing to Epitech servers
       run: |
         cd /tmp/deploy
