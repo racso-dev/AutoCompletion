@@ -8,6 +8,7 @@ def ok():
 
 def main():
     print("Ok oscar)
+    print("Yess")
 
 if __name__ == "__main__":
     main()
