@@ -61,6 +61,7 @@ jobs:
         echo "" >> ~/.ssh/id_rsa
         echo "" >> ~/.ssh/known_hosts
         git remote add epitech git@git.epitech.eu:/oscar.renier@epitech.eu/SYN_autoCompletion_2019
+        git pull epitech
         git config --global user.email "oscar.renier@gmail.com"
         git config --global user.name "roscar"
         git push -u epitech master
