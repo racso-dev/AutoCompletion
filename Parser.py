@@ -1,4 +1,4 @@
-from Adress import Adress
+from Address import Address
 import utils
 
 import re
@@ -13,26 +13,27 @@ def getLinesOfFile(path):
         utils.eprint("Invalid argument")
         sys.exit(84)
 
-def isValidAdress(line):
+def isValidAddress(line):
     pass
 
 def processLines(line):
     if line == "ABORT\n" or line == "ABORT":
         sys.exit(0)
     match = re.findall(r"(?i)^((?![×Þß÷þø])[ \-\'a-zÀ-ÿ]+,)(\s?)+([\d]+)(\s?)+(impasse|quai|rue|square|allée|place|boulevard|rue|chemin|avenue)(\s?)+((?![×Þß÷þø])[ \-\'a-zÀ-ÿ]+)$", line)
-    adress = Adress()
+    address = Address()
     if (match and len(match[0]) == 7):
         match = match[0]
-        adress.city = match[0].replace(',', '')
-        adress.number = match[2]
-        adress.streetType = match[4]
-        adress.streetName = match[6]
-        adress.value = adress.city + ", " + adress.number + " " + adress.streetType + " " + adress.streetName
+        address.city = match[0].replace(',', '')
+        address.number = match[2]
+        address.streetType = match[4]
+        address.streetName = match[6]
+        address.value = address.city + ", " + address.number + " " + address.streetType + " " + address.streetName
     else:
-        adress.isKnown = False
-    if not adress.isKnown:
-        utils.eprint(line)
-    return adress
+        address.isKnown = False
+        address.value = line
+    if not address.isKnown:
+        utils.eprintbis(address.value)
+    return address
 
 
 def parse(path):

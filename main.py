@@ -4,6 +4,7 @@ import re
 import sys
 import utils
 from Parser import parse
+from Completion import Completion
 
 def getline(stream, delimiter="\n"):
     def _gen():
@@ -23,12 +24,18 @@ def displayUsage():
     print("USAGE")
     print("     ./autoCompletion dictionary\n")
     print("DESCRIPTION")
-    print("      dictionary    file containing one adress per line, as knowledge base")
+    print("      dictionary    file containing one address per line, as knowledge base")
 
 def main(argv):
-    parse(argv[1])
-    while 1:
-        input = getline(sys.stdin)
+    addresses = parse(argv[1])
+    engine = Completion(addresses)
+
+    engine.displayMostProbables()
+    while engine.currentInput != "ABORT":
+        engine.currentInput = getline(sys.stdin)
+        engine.concatInput += engine.currentInput
+        engine.process()
+
 
 if __name__ == "__main__":
     if len(sys.argv) != 2:
