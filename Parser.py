@@ -19,7 +19,7 @@ def isValidAddress(line):
 def processLines(line):
     if line == "ABORT\n" or line == "ABORT":
         sys.exit(0)
-    match = re.findall(r"(?i)^((?![×Þß÷þø])[ \-\'a-zÀ-ÿ]+,)(\s?)+([\d]+)(\s?)+(impasse|quai|rue|square|allée|place|boulevard|rue|chemin|avenue)(\s?)+((?![×Þß÷þø])[ \-\'a-zÀ-ÿ]+)$", line)
+    match = re.findall(r"(?i)^((?![×Þß÷þø])[ \-\'a-zÀ-ÿ]+,?)(\s?)+([\d]+)(\s?)+(impasse|quai|rue|square|allée|place|boulevard|rue|chemin|avenue)(\s?)+((?![×Þß÷þø])[ \-\'a-zÀ-ÿ]+)$", line)
     address = Address()
     if (match and len(match[0]) == 7):
         match = match[0]
