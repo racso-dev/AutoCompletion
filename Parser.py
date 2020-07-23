@@ -10,8 +10,7 @@ def getLinesOfFile(path):
         Lines = file.readlines()
         return Lines
     except FileNotFoundError:
-        utils.eprint("Invalid argument")
-        sys.exit(84)
+        utils.quitWithError("Invalid argument")
 
 def isValidAddress(line):
     pass

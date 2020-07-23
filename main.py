@@ -29,17 +29,18 @@ def displayUsage():
 def main(argv):
     addresses = parse(argv[1])
     engine = Completion(addresses)
+    begining = True
 
-    engine.displayMostProbables()
+    engine.displayMostProbablesLetters(True)
     while engine.currentInput != "ABORT":
-        engine.currentInput = getline(sys.stdin)
-        engine.concatInput += engine.currentInput
-        engine.process()
+        engine.concatInput += getline(sys.stdin).lower()
+        engine.process(begining)
+        begining = False
 
 
 if __name__ == "__main__":
     if len(sys.argv) != 2:
-        utils.eprint("Invalid usage, see ./autoCompletion -h for further informations")
+        utils.quitWithError("Invalid usage, see ./autoCompletion -h for further informations")
         sys.exit(84)
     elif sys.argv[1] == "-h":
         displayUsage()
