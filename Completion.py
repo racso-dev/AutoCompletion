@@ -54,7 +54,6 @@ class Completion(object):
             tmp += char
         return (res + "".join(sorted(tmp)))[:5]
 
-# TODO : Refacto to take criterias in parmeters : city or streetName
     def displayMostProbablesLetters(self, isBegining):
         pairOfCharOccur = {}
         toMap = self.dicOfAddresses if isBegining else self.matchedAddresses

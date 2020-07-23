@@ -16,8 +16,6 @@ def getline(stream, delimiter="\n"):
                     break
                 else:
                     yield line
-            else:
-                sys.exit(84)
     return "".join(_gen())
 
 def displayUsage():
