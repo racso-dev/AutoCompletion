@@ -20,6 +20,7 @@ class Completion(object):
         self.concatInput = ""
         self.completedByEngine = ""
         self.completionState = CompletionState.CITY
+        self.finalMatch = []
 
     def process(self, isBegining):
         if self.completionState == CompletionState.CITY:
@@ -36,6 +37,10 @@ class Completion(object):
                 self.displayMostProbablesLetters(False)
         if self.completionState == CompletionState.STREETNAME:
             self.lookForStreetName(True)
+            # if not self.matchedStreetNames:
+            #     utils.quitWithError("Unknwon adress")
+            # elif self.matchedStreetNames.__len__() == 1:
+            #     self.completedByEngine
             self.displayMostProbablesLetters(False)
 
     def sortByOccAndAlpha(self, pairs):
@@ -44,14 +49,21 @@ class Completion(object):
         i = 0
 
         while i < pairs.__len__():
-            while i < pairs.__len__() - 1 and pairs[i][1] != pairs[i + 1][1]:
+            while i < pairs.__len__() - 1 and pairs[i][1] == pairs[i + 1][1]:
+                if pairs[i][0] <= pairs[i + 1][0]:
+                    res += pairs[i][0]
+                    i += 1
+                else:
+                    res += pairs[i + 1][0]
+                    i += 1
+            while i < pairs.__len__() - 1 and (pairs[i][1] > pairs[i + 1][1]):
                 res += pairs[i][0]
                 i += 1
             tab = pairs[i:pairs.__len__()]
             break
-
         for char, nbr in tab:
             tmp += char
+        # print("Tmp =", sorted(tmp), "Res =", res)
         return (res + "".join(sorted(tmp)))[:5]
 
     def displayMostProbablesLetters(self, isBegining):
@@ -59,12 +71,16 @@ class Completion(object):
         toMap = self.dicOfAddresses if isBegining else self.matchedAddresses
 
         for address in toMap:
-            strs = address.city.split() if self.completionState == CompletionState.CITY else address.streetName.split()
-            for string in strs:
-                if not string[self.concatInput.__len__()].lower() in pairOfCharOccur:
-                    pairOfCharOccur[string[self.concatInput.__len__()].lower()] = 1
-                else:
-                    pairOfCharOccur[string[self.concatInput.__len__()].lower()] += 1
+            if address.isKnown:
+                # print("\n\nBegin addr:" + address.city + "$End")
+                strs = address.city.replace(",", "").split(" ") if self.completionState == CompletionState.CITY else address.streetName.split(" ")
+                for string in strs:
+                    # print("Appended to = ", string, self.concatInput.__len__())
+                    if not string[self.concatInput.__len__()].lower() in pairOfCharOccur:
+                        pairOfCharOccur[string[self.concatInput.__len__()].lower()] = 1
+                    else:
+                        pairOfCharOccur[string[self.concatInput.__len__()].lower()] += 1
+        rev_sorted = reversed(sorted(pairOfCharOccur.items(), key=operator.itemgetter(1)))
         sorted_char = list(reversed(sorted(pairOfCharOccur.items(), key=operator.itemgetter(1))))
         sorted_char = self.sortByOccAndAlpha(sorted_char)
         if self.completionState == CompletionState.CITY:

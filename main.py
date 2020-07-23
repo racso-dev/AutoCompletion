@@ -30,8 +30,12 @@ def main(argv):
     begining = True
 
     engine.displayMostProbablesLetters(True)
-    while engine.currentInput != "ABORT":
-        engine.concatInput += getline(sys.stdin).lower()
+    while 1:
+        currentInput = getline(sys.stdin).lower()
+        engine.concatInput += currentInput
+        if (currentInput == "abort"):
+            sys.exit(0)
+        print("Engine input = ", engine.concatInput)
         engine.process(begining)
         begining = False
 

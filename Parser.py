@@ -15,18 +15,40 @@ def getLinesOfFile(path):
 def isValidAddress(line):
     pass
 
+def trimWhitesSpaces(string):
+    i = 0
+    res1 = ""
+    res2 = ""
+    lgth = string.__len__()
+
+    while i < lgth and string[i] == ' ':
+        i += 1
+    while i < lgth and string[i]:
+        res1 += string[i]
+        i += 1
+    tmp = reversed(res1).__str__()
+    i = 0
+    while i < lgth and tmp[i] == ' ':
+        i += 1
+    while i < lgth and tmp[i]:
+        res2 += string[i]
+        i += 1
+
+    return res2
+
 def processLines(line):
     if line == "ABORT\n" or line == "ABORT":
         sys.exit(0)
-    match = re.findall(r"(?i)^((?![×Þß÷þø])[ \-\'a-zÀ-ÿ]+,?)(\s?)+([\d]+)(\s?)+(impasse|quai|rue|square|allée|place|boulevard|rue|chemin|avenue)(\s?)+((?![×Þß÷þø])[ \-\'a-zÀ-ÿ]+)$", line)
+    match = re.findall(r"(?i)^(\s?)+((?![×Þß÷þø])[ \-\'a-zÀ-ÿ]+,?)(\s?)+([\d]+)(\s?)+(impasse|quai|rue|square|allée|place|boulevard|rue|chemin|avenue)(\s?)+((?![×Þß÷þø])[ \-\'a-zÀ-ÿ]+)$", line)
     address = Address()
-    if (match and len(match[0]) == 7):
+    if (match and len(match[0]) == 8):
         match = match[0]
-        address.city = match[0].replace(',', '')
-        address.number = match[2]
-        address.streetType = match[4]
-        address.streetName = match[6]
-        address.value = address.city + ", " + address.number + " " + address.streetType + " " + address.streetName
+        address.city = trimWhitesSpaces(match[1].replace(",", ""))
+        # print("ADress.city ===", address.city)
+        address.number = match[3]
+        address.streetType = match[5]
+        address.streetName = match[7]
+        address.value = address.city + " " + address.number + " " + address.streetType + " " + address.streetName
     else:
         address.isKnown = False
         address.value = line
