@@ -4,6 +4,7 @@ import sys
 from Address import Address
 from collections import Counter
 from enum import Enum, auto
+import Match
 
 class CompletionState(Enum):
     CITY = 1
@@ -12,105 +13,90 @@ class CompletionState(Enum):
 class Completion(object):
     def __init__(self, dicOfAddresses):
         self.dicOfAddresses = dicOfAddresses
-        self.matchedAddresses = []
-        self.matchedCities = [] #à retirrer ?
-        self.matchedStreetNames = [] # idem ?
-        self.isProcessing = True
-        self.currentInput = ""
+        self.matchedAddresses = dicOfAddresses
+        self.completionState = CompletionState.CITY
         self.concatInput = ""
         self.completedByEngine = ""
-        self.completionState = CompletionState.CITY
-        self.finalMatch = []
 
-    def process(self, isBegining):
-        if self.completionState == CompletionState.CITY:
-            self.lookForCity(isBegining)
-            if not self.matchedCities:
-                utils.quitWithError("Unknown address")
-            elif self.matchedCities.__len__() == 1:
+    def process(self):
+        self.matchedAddresses = Match.matchWithCriterias({
+            "toLookIn": self.matchedAddresses,
+            "completionState": self.completionState,
+            "toMatch": self.concatInput
+        })
+        tmp = Match.getTabOfDiffEltsOfAddrFrom(self.matchedAddresses, {"completionState": self.completionState})
+        if len(tmp) == 0:
+            utils.quitWithError("Unknown address")
+        elif len(tmp) == 1:
+            if self.completionState == CompletionState.CITY:
+                self.completedByEngine = tmp[0].upper() + ", "
                 self.completionState = CompletionState.STREETNAME
-                self.completedByEngine = self.matchedCities[0].upper() + ", "
                 self.concatInput = ""
-            else:
-                self.concatInput = self.concatInput.upper()
-                # self.conpletedByEngine += self.concatInput
-                self.displayMostProbablesLetters(False)
-        if self.completionState == CompletionState.STREETNAME:
-            self.lookForStreetName(True)
-            # if not self.matchedStreetNames:
-            #     utils.quitWithError("Unknwon adress")
-            # elif self.matchedStreetNames.__len__() == 1:
-            #     self.completedByEngine
-            self.displayMostProbablesLetters(False)
-
-    def sortByOccAndAlpha(self, pairs):
-        tab = []
-        res, tmp = "", ""
-        i = 0
-
-        while i < pairs.__len__():
-            while i < pairs.__len__() - 1 and pairs[i][1] == pairs[i + 1][1]:
-                if pairs[i][0] <= pairs[i + 1][0]:
-                    res += pairs[i][0]
-                    i += 1
-                else:
-                    res += pairs[i + 1][0]
-                    i += 1
-            while i < pairs.__len__() - 1 and (pairs[i][1] > pairs[i + 1][1]):
-                res += pairs[i][0]
-                i += 1
-            tab = pairs[i:pairs.__len__()]
-            break
-        for char, nbr in tab:
-            tmp += char
-        # print("Tmp =", sorted(tmp), "Res =", res)
-        return (res + "".join(sorted(tmp)))[:5]
-
-    def displayMostProbablesLetters(self, isBegining):
-        pairOfCharOccur = {}
-        toMap = self.dicOfAddresses if isBegining else self.matchedAddresses
-
-        for address in toMap:
-            if address.isKnown:
-                # print("\n\nBegin addr:" + address.city + "$End")
-                strs = address.city.replace(",", "").split(" ") if self.completionState == CompletionState.CITY else address.streetName.split(" ")
-                for string in strs:
-                    # print("Appended to = ", string, self.concatInput.__len__())
-                    if not string[self.concatInput.__len__()].lower() in pairOfCharOccur:
-                        pairOfCharOccur[string[self.concatInput.__len__()].lower()] = 1
-                    else:
-                        pairOfCharOccur[string[self.concatInput.__len__()].lower()] += 1
-        rev_sorted = reversed(sorted(pairOfCharOccur.items(), key=operator.itemgetter(1)))
-        sorted_char = list(reversed(sorted(pairOfCharOccur.items(), key=operator.itemgetter(1))))
-        sorted_char = self.sortByOccAndAlpha(sorted_char)
-        if self.completionState == CompletionState.CITY:
-            utils.printProbablesLetters(sorted_char, self.concatInput)
+                self.displayMostProbablesLetters({"noInput": True})
+            elif self.completionState == CompletionState.STREETNAME:
+                utils.printFinalCompletionAndQuit(tmp[0].value)
         else:
-            utils.printProbablesLetters(sorted_char, self.completedByEngine)
+            self.matchedAddresses = Match.matchWithCriterias({
+                "toLookIn": self.matchedAddresses,
+                "completionState": self.completionState,
+                "toMatch": self.concatInput
+            })
+            self.displayMostProbablesLetters({"noInput": False})
 
-    def lookForCity(self, isFirstCall):
-        matchingAddresses = []
-        matchingCities = []
-        toMap = self.dicOfAddresses if isFirstCall else self.matchedAddresses
+    def getPairsOfSequenceOccurrencesIn(self, toMap, criterias):
+        pairs = {}
 
         for address in toMap:
-            if address.isKnown:
-                if address.city.lower().find(self.concatInput.lower()) == 0:
-                    matchingAddresses.append(address)
-                if address.city.lower().find(self.concatInput.lower()) == 0 and address.city not in matchingCities:
-                    matchingCities.append(address.city)
-        self.matchedAddresses = matchingAddresses
-        self.matchedCities = matchingCities
+            string = address.city.split(" ") if self.completionState == CompletionState.CITY else address.streetName.split(" ")
+            for subString in string:
+                lettersSequence = subString[:self.concatInput.__len__() + 1]
+                if not lettersSequence in pairs:
+                    pairs[lettersSequence] = 1
+                else:
+                    pairs[lettersSequence] += 1
+                if not criterias["noInput"] and subString.find(self.concatInput) != 0:
+                    pairs.pop(lettersSequence)
+        return pairs
 
-    def lookForStreetName(self, isFirstCall):
-        matchingAddresses = []
-        matchingStreetNames = []
-        if not isFirstCall:
-            for address in self.matchedAddresses:
-                if address.isKnown:
-                    if address.streetName.lower().find(self.completedByEngine.lower()) == 0:
-                        matchingAddresses.append(address)
-                    if address.streetName.lower().find(self.completedByEngine.lower()) == 0 and address.streetName not in matchingStreetNames:
-                        matchingStreetNames.append(address.streetName)
-            self.matchedAddresses = matchingAddresses
-            self.matchedStreetNames = matchingStreetNames
+    def sortPairsOfSequenceOccurrences(self, pairsOfSeqOcc):
+        rev_sorted = reversed(sorted(pairsOfSeqOcc.items(), key=operator.itemgetter(1)))
+        sortedPairsOfSeqOcc = list(rev_sorted)
+        sortedPairsOfSeqOcc = utils.sortByOccAndAlpha(sortedPairsOfSeqOcc)
+        return sortedPairsOfSeqOcc
+
+    def printProbablesLetters(self, probables):
+        i = 0
+        for probable in probables:
+            print("{" + (self.completedByEngine if self.completionState == CompletionState.STREETNAME else "") + probable[:len(probable) - 1].upper() + probable[-1].lower() + "} " if i is not 5 else "}", end='')
+            i += 1
+        print("\n", end='')
+
+    def getAddressFromCity(self, city):
+        tmp = ""
+
+        for match in self.matchedAddresses:
+            if match.value.lower().find(city.lower()) == 0:
+                tmp = match.value
+        return tmp
+
+    def displayMostProbablesLetters(self, criterias):
+        pairsOfSeqOcc = self.getPairsOfSequenceOccurrencesIn(self.matchedAddresses, criterias)
+        sortedPairsOfSeqOcc = self.sortPairsOfSequenceOccurrences(pairsOfSeqOcc)
+
+        self.matchedAddresses = utils.sortAlphaMatches(self.matchedAddresses)
+        if self.completionState == CompletionState.CITY:
+            if len(sortedPairsOfSeqOcc) == 1:
+                tmp = Match.getTabOfDiffEltsOfAddrFrom(self.matchedAddresses, {"completionState": self.completionState})
+                inpt = utils.askForAnInputWithNum(tmp, {"completionState": self.completionState})
+                final = self.getAddressFromCity(inpt)
+                utils.printFinalCompletionAndQuit(final)
+            else:
+                self.printProbablesLetters(sortedPairsOfSeqOcc)
+        else:
+            if len(sortedPairsOfSeqOcc) == 1 and utils.isSameCitiesAndStreetNames(self.matchedAddresses):
+                utils.askForAnInputWithNum(self.matchedAddresses, {"completionState": self.completionState})
+            else:
+                if len(self.matchedAddresses) == 1:
+                    utils.printFinalCompletionAndQuit(self.matchedAddresses[0].value)
+                else:
+                    self.printProbablesLetters(sortedPairsOfSeqOcc)

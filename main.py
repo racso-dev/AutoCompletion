@@ -6,18 +6,6 @@ import utils
 from Parser import parse
 from Completion import Completion
 
-def getline(stream, delimiter="\n"):
-    def _gen():
-        while 1:
-            line = stream.readline()
-            if line:
-                if delimiter in line:
-                    yield line[0:line.index(delimiter)]
-                    break
-                else:
-                    yield line
-    return "".join(_gen())
-
 def displayUsage():
     print("USAGE")
     print("     ./autoCompletion dictionary\n")
@@ -27,17 +15,14 @@ def displayUsage():
 def main(argv):
     addresses = parse(argv[1])
     engine = Completion(addresses)
-    begining = True
 
-    engine.displayMostProbablesLetters(True)
+    engine.displayMostProbablesLetters({"noInput": True})
     while 1:
-        currentInput = getline(sys.stdin).lower()
+        currentInput = utils.getline(sys.stdin).lower()
         engine.concatInput += currentInput
         if (currentInput == "abort"):
             sys.exit(0)
-        print("Engine input = ", engine.concatInput)
-        engine.process(begining)
-        begining = False
+        engine.process()
 
 
 if __name__ == "__main__":

@@ -12,9 +12,6 @@ def getLinesOfFile(path):
     except FileNotFoundError:
         utils.quitWithError("Invalid argument")
 
-def isValidAddress(line):
-    pass
-
 def trimWhitesSpaces(string):
     i = 0
     res1 = ""
@@ -36,7 +33,7 @@ def trimWhitesSpaces(string):
 
     return res2
 
-def processLines(line):
+def processLine(line):
     if line == "ABORT\n" or line == "ABORT":
         sys.exit(0)
     match = re.findall(r"(?i)^(\s?)+((?![×Þß÷þø])[ \-\'a-zÀ-ÿ]+,?)(\s?)+([\d]+)(\s?)+(impasse|quai|rue|square|allée|place|boulevard|rue|chemin|avenue)(\s?)+((?![×Þß÷þø])[ \-\'a-zÀ-ÿ]+)$", line)
@@ -44,11 +41,12 @@ def processLines(line):
     if (match and len(match[0]) == 8):
         match = match[0]
         address.city = trimWhitesSpaces(match[1].replace(",", ""))
-        # print("ADress.city ===", address.city)
         address.number = match[3]
         address.streetType = match[5]
         address.streetName = match[7]
-        address.value = address.city + " " + address.number + " " + address.streetType + " " + address.streetName
+        address.value = address.city + ", " + address.number + " " + address.streetType + " " + address.streetName
+        address.city = address.city.replace("'", "").replace("-", "").replace(",", "").lower()
+        address.streetName = address.streetName.replace("'", "").replace("-", "").lower()
     else:
         address.isKnown = False
         address.value = line
@@ -61,5 +59,7 @@ def parse(path):
     res = []
     lines = getLinesOfFile(path)
     for line in lines:
-        res.append(processLines(line))
+        tmp = processLine(line)
+        if tmp.isKnown:
+            res.append(tmp)
     return res
