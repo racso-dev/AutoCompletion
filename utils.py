@@ -27,19 +27,6 @@ def printFinalCompletionAndQuit(completion):
     print("=> " + completion)
     sys.exit(0)
 
-def sortAlphaMatches(matches):
-    tab = []
-    res = []
-
-    for match in matches:
-        tab.append(match.value.lower())
-    tab.sort()
-    for elt in tab:
-        for match in matches:
-            if match.value.lower() == elt:
-                res.append(match)
-    return res
-
 def askForAnInputWithNum(inputs, criterias):
     i = 1
 
@@ -62,28 +49,6 @@ def askForAnInputWithNum(inputs, criterias):
         printFinalCompletionAndQuit(inputs[int(inpt) - 1].value)
     else:
         return inputs[int(inpt) - 1]
-
-def sortByOccAndAlpha(pairs):
-    tab, res, tmp = [], [], []
-    i = 0
-
-    while i < pairs.__len__():
-        while i < pairs.__len__() - 1 and pairs[i][1] == pairs[i + 1][1]:
-            if pairs[i][0] <= pairs[i + 1][0]:
-                res.append(pairs[i][0])
-                i += 1
-            else:
-                res.append(pairs[i + 1][0])
-                i += 1
-        while i < pairs.__len__() - 1 and (pairs[i][1] > pairs[i + 1][1]):
-            res.append(pairs[i][0])
-            i += 1
-        tab = pairs[i:pairs.__len__()]
-        break
-    for seq, nbr in tab:
-        tmp.append(seq)
-    tmp.sort()
-    return (res + tmp)[:5]
 
 def isSameCitiesAndStreetNames(matched):
     cities = Match.getTabOfDiffEltsOfAddrFrom(matched, {"completionState": CompletionState.CITY})

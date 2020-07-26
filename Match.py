@@ -14,7 +14,7 @@ def matchWithCriterias(criterias):
     for address in toLookIn:
         string = address.city.split(" ") if completionState == Completion.CompletionState.CITY else address.streetName.split(" ")
         for subString in string:
-            if subString.find(toMatch) == 0:
+            if address not in matches and subString.find(toMatch) == 0:
                 matches.append(address)
     return matches
 

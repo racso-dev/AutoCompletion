@@ -45,7 +45,6 @@ class Completion(object):
 
     def getPairsOfSequenceOccurrencesIn(self, toMap, criterias):
         pairs = {}
-
         for address in toMap:
             string = address.city.split(" ") if self.completionState == CompletionState.CITY else address.streetName.split(" ")
             for subString in string:
@@ -58,16 +57,10 @@ class Completion(object):
                     pairs.pop(lettersSequence)
         return pairs
 
-    def sortPairsOfSequenceOccurrences(self, pairsOfSeqOcc):
-        rev_sorted = reversed(sorted(pairsOfSeqOcc.items(), key=operator.itemgetter(1)))
-        sortedPairsOfSeqOcc = list(rev_sorted)
-        sortedPairsOfSeqOcc = utils.sortByOccAndAlpha(sortedPairsOfSeqOcc)
-        return sortedPairsOfSeqOcc
-
     def printProbablesLetters(self, probables):
         i = 0
-        for probable in probables:
-            print("{" + (self.completedByEngine if self.completionState == CompletionState.STREETNAME else "") + probable[:len(probable) - 1].upper() + probable[-1].lower() + "} " if i is not 5 else "}", end='')
+        for seq, nbr in probables:
+            print("{" + (self.completedByEngine if self.completionState == CompletionState.STREETNAME else "") + seq[:len(seq) - 1].upper() + seq[-1].lower() + "} " if i is not 5 else "}", end='')
             i += 1
         print("\n", end='')
 
@@ -79,11 +72,21 @@ class Completion(object):
                 tmp = match.value
         return tmp
 
+    def autoCompleteInput(self, criterias, pairs):
+        if not criterias["noInput"]:
+            if len(pairs) == 1:
+                for key in pairs:
+                    if pairs[key] > 1:
+                        self.concatInput += key[-1]
+        ret = self.getPairsOfSequenceOccurrencesIn(self.matchedAddresses, criterias)
+        return ret
+
     def displayMostProbablesLetters(self, criterias):
         pairsOfSeqOcc = self.getPairsOfSequenceOccurrencesIn(self.matchedAddresses, criterias)
-        sortedPairsOfSeqOcc = self.sortPairsOfSequenceOccurrences(pairsOfSeqOcc)
+        pairsCompleted = self.autoCompleteInput(criterias, pairsOfSeqOcc)
+        sortedPairsOfSeqOcc = sorted(pairsCompleted.items(), key=lambda x: (-x[1], x[0]))[:5]
+        self.matchedAddresses = sorted(self.matchedAddresses, key=lambda address: address.value)
 
-        self.matchedAddresses = utils.sortAlphaMatches(self.matchedAddresses)
         if self.completionState == CompletionState.CITY:
             if len(sortedPairsOfSeqOcc) == 1:
                 tmp = Match.getTabOfDiffEltsOfAddrFrom(self.matchedAddresses, {"completionState": self.completionState})

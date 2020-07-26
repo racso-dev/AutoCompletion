@@ -19,10 +19,13 @@ def main(argv):
     engine.displayMostProbablesLetters({"noInput": True})
     while 1:
         currentInput = utils.getline(sys.stdin).lower()
-        engine.concatInput += currentInput
-        if (currentInput == "abort"):
-            sys.exit(0)
-        engine.process()
+        if currentInput:
+            engine.concatInput += currentInput
+            if (currentInput == "abort"):
+                sys.exit(0)
+            engine.process()
+        else :
+            engine.displayMostProbablesLetters({"noInput": True})
 
 
 if __name__ == "__main__":
