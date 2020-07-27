@@ -24,6 +24,8 @@ class Completion(object):
             "completionState": self.completionState,
             "toMatch": self.concatInput
         })
+        if len(self.matchedAddresses) == 1:
+            utils.printFinalCompletionAndQuit(self.matchedAddresses[0].value)
         tmp = Match.getTabOfDiffEltsOfAddrFrom(self.matchedAddresses, {"completionState": self.completionState})
         if len(tmp) == 0:
             utils.quitWithError("Unknown address")
@@ -73,31 +75,41 @@ class Completion(object):
         return tmp
 
     def autoCompleteInput(self, criterias, pairs):
-        if not criterias["noInput"]:
-            if len(pairs) == 1:
-                for key in pairs:
-                    if pairs[key] > 1:
-                        self.concatInput += key[-1]
-        ret = self.getPairsOfSequenceOccurrencesIn(self.matchedAddresses, criterias)
-        return ret
+        ret = pairs
+        tab = [pairs]
+
+        while len(ret) == 1:
+            for key in ret:
+                if ret[key] > 1:
+                    self.concatInput += key[-1]
+                    ret = self.getPairsOfSequenceOccurrencesIn(self.matchedAddresses, criterias)
+                tab.append(ret)
+        if len(tab) <= 1:
+            return ret
+        else:
+            i = len(tab) - 1
+            while not tab[i]:
+                i -= 1
+            return tab[i]
 
     def displayMostProbablesLetters(self, criterias):
         pairsOfSeqOcc = self.getPairsOfSequenceOccurrencesIn(self.matchedAddresses, criterias)
         pairsCompleted = self.autoCompleteInput(criterias, pairsOfSeqOcc)
         sortedPairsOfSeqOcc = sorted(pairsCompleted.items(), key=lambda x: (-x[1], x[0]))[:5]
-        self.matchedAddresses = sorted(self.matchedAddresses, key=lambda address: address.value)
 
         if self.completionState == CompletionState.CITY:
             if len(sortedPairsOfSeqOcc) == 1:
+                self.matchedAddresses = sorted(self.matchedAddresses, key=lambda address: address.city)
                 tmp = Match.getTabOfDiffEltsOfAddrFrom(self.matchedAddresses, {"completionState": self.completionState})
-                inpt = utils.askForAnInputWithNum(tmp, {"completionState": self.completionState})
+                inpt = utils.askForAnInputWithNum(tmp, {"completionState": self.completionState}, sortedPairsOfSeqOcc[0][0], "")
                 final = self.getAddressFromCity(inpt)
                 utils.printFinalCompletionAndQuit(final)
             else:
                 self.printProbablesLetters(sortedPairsOfSeqOcc)
         else:
-            if len(sortedPairsOfSeqOcc) == 1 and utils.isSameCitiesAndStreetNames(self.matchedAddresses):
-                utils.askForAnInputWithNum(self.matchedAddresses, {"completionState": self.completionState})
+            if len(sortedPairsOfSeqOcc) == 1 and len(Match.getTabOfDiffEltsOfAddrFrom(self.matchedAddresses, {"completionState": CompletionState.CITY})) == 1:
+                self.matchedAddresses = sorted(self.matchedAddresses, key=lambda address: address.streetName)
+                utils.askForAnInputWithNum(self.matchedAddresses, {"completionState": self.completionState}, self.completedByEngine, sortedPairsOfSeqOcc[0][0])
             else:
                 if len(self.matchedAddresses) == 1:
                     utils.printFinalCompletionAndQuit(self.matchedAddresses[0].value)

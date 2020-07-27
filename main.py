@@ -16,6 +16,10 @@ def main(argv):
     addresses = parse(argv[1])
     engine = Completion(addresses)
 
+    if len(addresses) == 0:
+        utils.quitWithError("No valid addresses found in dictionary")
+    elif len(addresses) == 1:
+        utils.printFinalCompletionAndQuit(addresses[0].value)
     engine.displayMostProbablesLetters({"noInput": True})
     while 1:
         currentInput = utils.getline(sys.stdin).lower()

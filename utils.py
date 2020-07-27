@@ -27,14 +27,14 @@ def printFinalCompletionAndQuit(completion):
     print("=> " + completion)
     sys.exit(0)
 
-def askForAnInputWithNum(inputs, criterias):
+def askForAnInputWithNum(inputs, criterias, completedCity, completedStreetName):
     i = 1
 
     for elt in inputs:
         if criterias["completionState"] == CompletionState.CITY:
-            print("{" + str(i) + " : " + elt + "}" + (" " if i != len(inputs) else "\n"), end='')
+            print("{" + str(i) + " : " + elt.replace(completedCity, completedCity.upper()) + "}" + (" " if i != len(inputs) else "\n"), end='')
         else:
-            print("{" + str(i) + " : " + elt.value + "}" + (" " if i != len(inputs) else "\n"), end='')
+            print("{" + str(i) + " : " + elt.value.lower().replace(completedCity.lower(), completedCity.upper()).replace(completedStreetName, completedStreetName.upper()) + "}" + (" " if i != len(inputs) else "\n"), end='')
         i += 1
     inpt = getline(sys.stdin)
     try:
@@ -49,11 +49,3 @@ def askForAnInputWithNum(inputs, criterias):
         printFinalCompletionAndQuit(inputs[int(inpt) - 1].value)
     else:
         return inputs[int(inpt) - 1]
-
-def isSameCitiesAndStreetNames(matched):
-    cities = Match.getTabOfDiffEltsOfAddrFrom(matched, {"completionState": CompletionState.CITY})
-    streetNames = Match.getTabOfDiffEltsOfAddrFrom(matched, {"completionState": False})
-
-    if len(cities) == 1 and len(streetNames) == 1:
-        return True
-    return False
